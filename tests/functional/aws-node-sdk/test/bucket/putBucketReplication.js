@@ -182,8 +182,7 @@ describe('aws-node-sdk test putBucketReplication configuration rules', () => {
             checkError(config, null, done));
     });
 
-    it('should not allow a combination of storageClasses when one ' +
-        'defines an external location', done => {
+    it('should allow a combination of storageClasses across rules', done => {
         const config = setConfigRules([replicationConfig.Rules[0], {
             Destination: {
                 Bucket: `arn:aws:s3:::${destinationBucket}`,
@@ -193,7 +192,7 @@ describe('aws-node-sdk test putBucketReplication configuration rules', () => {
             Status: 'Enabled',
         }]);
         config.Role = 'arn:aws:iam::account-id:role/resource';
-        checkError(config, 'InvalidRequest', done);
+        checkError(config, null, done);
     });
 
     it('should not allow a comma separated list of roles when a rule ' +
@@ -341,6 +340,21 @@ describe('aws-node-sdk test putBucketReplication configuration rules', () => {
         });
 
         it('should accept configuration when \'StorageClass\' is ' +
+            `${storageClass}`, done => checkError(config, null, done));
+    });
+
+    // A combination of external destination storage classes.
+    replicationUtils.validMultipleStorageClasses.forEach(storageClass => {
+        const ruleConfig = setConfigRules({
+            Destination: {
+                Bucket: `arn:aws:s3:::${destinationBucket}`,
+                StorageClass: storageClass,
+            },
+        });
+        const config = Object.assign({}, ruleConfig,
+            { Role: 'arn:aws:iam::account-id:role' });
+
+        it.only('should accept con[figuration when \'StorageClass\' is ' +
             `${storageClass}`, done => checkError(config, null, done));
     });
 
